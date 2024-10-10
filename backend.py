@@ -4,6 +4,7 @@ import csv
 from io import StringIO
 import json
 import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 app = Flask(__name__)
 client = OpenAI()  # Assumes OPENAI_API_KEY is set in environment variables
@@ -142,19 +143,21 @@ def upload_csv():
 def generate_content():
     selected_data = request.json
     
-    # Generate content for each selected item
+    # Generate content for each selected item concurrently
     generated_items = []
-    for item in selected_data:
-        prompt = f"Write a blog post about {item['keyword']} with the title: {item['title']}"
-        response = client.chat.completions.create(
-            model="gpt-4-0125-preview",  # or use the model that's available to you
-            messages=[{"role": "user", "content": prompt}]
-        )
-        generated_items.append({
-            "keyword": item['keyword'],
-            "title": item['title'],
-            "content": response.choices[0].message.content
-        })
+    with ThreadPoolExecutor(max_workers=5) as executor:  # Adjust max_workers as needed
+        future_to_item = {executor.submit(generate_blog_draft, item['title']): item for item in selected_data}
+        for future in as_completed(future_to_item):
+            item = future_to_item[future]
+            try:
+                content = future.result()
+                generated_items.append({
+                    "keyword": item['keyword'],
+                    "title": item['title'],
+                    "content": content
+                })
+            except Exception as exc:
+                print(f'Generation for {item["title"]} generated an exception: {exc}')
     
     # Store the generated content with a unique ID
     content_id = str(uuid.uuid4())

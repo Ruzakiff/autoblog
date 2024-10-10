@@ -43,6 +43,11 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
+        .product-input {
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -57,6 +62,7 @@
                 <th>Competition</th>
                 <th>Alignment with Goals</th>
                 <th>Total Score</th>
+                <th>Product Model/Description</th>
             </tr>
         </thead>
         <tbody>
@@ -69,6 +75,7 @@
                 <td>{{ item['competition'] }}</td>
                 <td>{{ item['alignment_with_goals'] }}</td>
                 <td>{{ item['totalScore'] }}</td>
+                <td><input type="text" class="product-input" placeholder="Optional product model/description"></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -104,7 +111,8 @@
                         searchVolume: row.cells[3].textContent,
                         competition: row.cells[4].textContent,
                         alignment_with_goals: row.cells[5].textContent,
-                        totalScore: row.cells[6].textContent
+                        totalScore: row.cells[6].textContent,
+                        productDescription: row.cells[7].querySelector('input').value
                     };
                 });
             // Send selectedItems to the backend
