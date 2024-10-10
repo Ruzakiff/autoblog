@@ -22,6 +22,111 @@
         h1, h2 {
             color: #333;
         }
+        .metatags-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+        .dialog {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .dialog-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .chat-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+        .chat-dialog {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            height: 400px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            font-weight: bold;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+        .chat-input input {
+            flex-grow: 1;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .chat-input button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-left: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .close-chat {
+            float: right;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -31,7 +136,87 @@
         <h2>{{ post.title }}</h2>
         <p><strong>Keyword:</strong> {{ post.keyword }}</p>
         <div>{{ post.content | safe }}</div>
+        <button class="chat-button" onclick="openChat({{ loop.index0 }})">Open Chat</button>
+        <div id="chat-dialog-{{ loop.index0 }}" class="chat-dialog" data-content="{{ post.content|tojson|safe }}">
+            <div class="chat-header">
+                Chat for "{{ post.title }}"
+                <span class="close-chat" onclick="closeChat({{ loop.index0 }})">&times;</span>
+            </div>
+            <div id="chat-messages-{{ loop.index0 }}" class="chat-messages"></div>
+            <div class="chat-input">
+                <input type="text" id="chat-input-{{ loop.index0 }}" placeholder="Type your message...">
+                <button onclick="sendMessage({{ loop.index0 }})">Send</button>
+            </div>
+        </div>
     </div>
     {% endfor %}
+
+    <script>
+        function openChat(index) {
+            document.getElementById(`chat-dialog-${index}`).style.display = 'flex';
+        }
+
+        function closeChat(index) {
+            document.getElementById(`chat-dialog-${index}`).style.display = 'none';
+        }
+
+        function sendMessage(index) {
+            const input = document.getElementById(`chat-input-${index}`);
+            const message = input.value.trim();
+            if (message) {
+                addMessage(index, 'User', message);
+                input.value = '';
+                
+                // Get the content ID from the URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const contentId = urlParams.get('id');
+                
+                // Get the blog post content
+                const blogPostContent = document.querySelector(`#chat-dialog-${index}`).getAttribute('data-content');
+                
+                // Send message to backend
+                fetch(`/chat/${index}?id=${contentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        message: message,
+                        blogContent: blogPostContent
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    addMessage(index, 'AI', data.response);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    addMessage(index, 'System', 'Error processing message');
+                });
+            }
+        }
+
+        function addMessage(index, sender, message) {
+            const chatMessages = document.getElementById(`chat-messages-${index}`);
+            const messageElement = document.createElement('p');
+            messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Add event listener for Enter key in input fields
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatInputs = document.querySelectorAll('[id^="chat-input-"]');
+            chatInputs.forEach((input, index) => {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendMessage(index);
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
+
+

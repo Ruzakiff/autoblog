@@ -198,7 +198,72 @@ def display_blog():
     blog_posts = generated_content[content_id]
     return render_template('blog.html', blog_posts=blog_posts)
 
+@app.route('/get-metatags/<int:index>')
+def get_metatags(index):
+    content_id = request.args.get('id')
+    if content_id not in generated_content:
+        return jsonify({"error": "Content not found"}), 404
+    
+    blog_posts = generated_content[content_id]
+    if index >= len(blog_posts):
+        return jsonify({"error": "Blog post index out of range"}), 404
+    
+    post = blog_posts[index]
+    
+    # Generate metatags using OpenAI API
+    prompt = f"Generate SEO-friendly metatags for the following blog post title and content:\n\nTitle: {post['title']}\n\nContent: {post['content'][:500]}..."
+    
+    response = client.chat.completions.create(
+        model="gpt-4-0125-preview",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    
+    metatags = response.choices[0].message.content
+    
+    # Parse the generated metatags (assuming they're in a specific format)
+    # You might need to adjust this parsing logic based on the actual output
+    lines = metatags.strip().split('\n')
+    title = next((line.split(': ', 1)[1] for line in lines if line.startswith('Title: ')), '')
+    description = next((line.split(': ', 1)[1] for line in lines if line.startswith('Description: ')), '')
+    keywords = next((line.split(': ', 1)[1] for line in lines if line.startswith('Keywords: ')), '')
+    
+    return jsonify({
+        "title": title,
+        "description": description,
+        "keywords": keywords
+    })
+
+@app.route('/chat/<int:index>', methods=['POST'])
+def chat(index):
+    content_id = request.args.get('id')
+    if content_id not in generated_content:
+        return jsonify({"error": "Content not found"}), 404
+    
+    blog_posts = generated_content[content_id]
+    if index >= len(blog_posts):
+        return jsonify({"error": "Blog post index out of range"}), 404
+    
+    post = blog_posts[index]
+    user_message = request.json['message']
+    blog_content = request.json.get('blogContent', post['content'])  # Use post content if blogContent is missing
+    
+    # Generate AI response using OpenAI API
+    prompt = f"""Context: This is a chat about the following blog post:
+    Title: {post['title']}
+    Content: {blog_content}
+
+    User message: {user_message}
+
+    Please provide a helpful and relevant response to the user's message in the context of this blog post."""
+    
+    response = client.chat.completions.create(
+        model="gpt-4-0125-preview",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    
+    ai_response = response.choices[0].message.content
+    
+    return jsonify({"response": ai_response})
+
 if __name__ == '__main__':
     app.run(debug=True)
-
-
