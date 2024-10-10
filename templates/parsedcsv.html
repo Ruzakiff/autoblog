@@ -28,16 +28,29 @@
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+        .selected {
+            background-color: #e0f7fa;
+        }
+        #generateButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #generateButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
     <h1>Parsed CSV Results</h1>
-    <p>This is a test paragraph to ensure the template is loading.</p>
-    <p>Number of items: {{ items|length }}</p>
-    <p>Raw items: {{ items }}</p>
     <table>
         <thead>
             <tr>
+                <th>Select</th>
                 <th>Keyword</th>
                 <th>Title</th>
                 <th>Search Volume</th>
@@ -49,6 +62,7 @@
         <tbody>
             {% for item in items %}
             <tr>
+                <td><input type="checkbox" class="row-selector" data-index="{{ loop.index0 }}"></td>
                 <td>{{ item['keyword'] }}</td>
                 <td>{{ item['title'] }}</td>
                 <td>{{ item['searchVolume'] }}</td>
@@ -59,5 +73,61 @@
             {% endfor %}
         </tbody>
     </table>
+    <button id="generateButton" disabled>Generate Blog Posts</button>
+
+    <script>
+        const checkboxes = document.querySelectorAll('.row-selector');
+        const generateButton = document.getElementById('generateButton');
+        const rows = document.querySelectorAll('tbody tr');
+
+        checkboxes.forEach((checkbox, index) => {
+            checkbox.addEventListener('change', () => {
+                rows[index].classList.toggle('selected', checkbox.checked);
+                updateGenerateButton();
+            });
+        });
+
+        function updateGenerateButton() {
+            const selectedCount = document.querySelectorAll('.row-selector:checked').length;
+            generateButton.disabled = selectedCount === 0;
+        }
+
+        generateButton.addEventListener('click', () => {
+            const selectedItems = Array.from(checkboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => {
+                    const index = parseInt(checkbox.dataset.index);
+                    const row = rows[index];
+                    return {
+                        keyword: row.cells[1].textContent,
+                        title: row.cells[2].textContent,
+                        searchVolume: row.cells[3].textContent,
+                        competition: row.cells[4].textContent,
+                        alignment_with_goals: row.cells[5].textContent,
+                        totalScore: row.cells[6].textContent
+                    };
+                });
+            // Send selectedItems to the backend
+            fetch('/generate-content', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(selectedItems)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.id) {
+                    window.location.href = '/blog?id=' + data.id;
+                } else {
+                    alert('Error generating content');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Error generating content');
+            });
+        });
+    </script>
 </body>
 </html>

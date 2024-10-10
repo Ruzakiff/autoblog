@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generated Content</title>
+    <title>Generated Blog Posts</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,12 +12,12 @@
             padding: 20px;
             background-color: #f4f4f4;
         }
-        .content-item {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        .blog-post {
+            background-color: white;
             padding: 20px;
             margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         h1, h2 {
             color: #333;
@@ -25,13 +25,13 @@
     </style>
 </head>
 <body>
-    <h1>Generated Content</h1>
-    {% for item in items %}
-        <div class="content-item">
-            <h2>{{ item.title }}</h2>
-            <p><strong>Keyword:</strong> {{ item.keyword }}</p>
-            <div>{{ item.content | safe }}</div>
-        </div>
+    <h1>Generated Blog Posts</h1>
+    {% for post in blog_posts %}
+    <div class="blog-post">
+        <h2>{{ post.title }}</h2>
+        <p><strong>Keyword:</strong> {{ post.keyword }}</p>
+        <div>{{ post.content | safe }}</div>
+    </div>
     {% endfor %}
 </body>
 </html>

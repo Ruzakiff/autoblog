@@ -61,8 +61,37 @@ def analyze_csv(data, stream=False):
         print("Raw content:", response_content)
         return []  # Return an empty list if parsing fails
     
-    messages.append({"role": "assistant", "content": json.dumps(json_data)})
+    #messages.append({"role": "assistant", "content": json.dumps(json_data)})
     return json_data  # Return the parsed JSON data as a Python object
+
+def generate_blog_draft(title):
+    print("Entering generate_blog_draft function")
+    print("Input title:", title)
+
+    prompt = f"""Generate a draft blog post for the following title: "{title}". 
+    The blog post should be informative, engaging, and aligned with Armarkat's goals. 
+    Include an introduction, main body with key points, and a conclusion."""
+
+    print("Generated prompt:", prompt)
+
+    from context import messages
+    messages.append({"role": "user", "content": prompt})
+
+    completion = client.chat.completions.create(
+        model="o1-preview-2024-09-12",  # Use an appropriate model
+        messages=messages
+    )
+    response_content = completion.choices[0].message.content
+    
+    print("Raw API response:", response_content)
+
+    # Clean the response content if necessary
+    response_content = response_content.strip()
+    
+    print("Cleaned response content:", response_content)
+
+    #messages.append({"role": "assistant", "content": response_content})
+    return response_content  # Return the generated blog draft
 
 @app.route('/', methods=['GET'])
 def index():
@@ -156,6 +185,15 @@ def display_content():
             print(f"  {key}: {value}")
 
     return render_template('parsedcsv.html', items=items)
+
+@app.route('/blog')
+def display_blog():
+    content_id = request.args.get('id')
+    if content_id not in generated_content:
+        return "Content not found", 404
+    
+    blog_posts = generated_content[content_id]
+    return render_template('blog.html', blog_posts=blog_posts)
 
 if __name__ == '__main__':
     app.run(debug=True)
