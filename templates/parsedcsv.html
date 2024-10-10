@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parsed CSV Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Parsed CSV Results</h1>
+    <p>This is a test paragraph to ensure the template is loading.</p>
+    <p>Number of items: {{ items|length }}</p>
+    <p>Raw items: {{ items }}</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Keyword</th>
+                <th>Title</th>
+                <th>Search Volume</th>
+                <th>Competition</th>
+                <th>Alignment with Goals</th>
+                <th>Total Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item['keyword'] }}</td>
+                <td>{{ item['title'] }}</td>
+                <td>{{ item['searchVolume'] }}</td>
+                <td>{{ item['competition'] }}</td>
+                <td>{{ item['alignment_with_goals'] }}</td>
+                <td>{{ item['totalScore'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
