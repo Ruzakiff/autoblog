@@ -245,25 +245,33 @@ def chat(index):
     
     post = blog_posts[index]
     user_message = request.json['message']
-    blog_content = request.json.get('blogContent', post['content'])  # Use post content if blogContent is missing
+    blog_content = request.json['blogContent']
     
     # Generate AI response using OpenAI API
-    prompt = f"""Context: This is a chat about the following blog post:
-    Title: {post['title']}
-    Content: {blog_content}
+    prompt = f"""You are an AI assistant helping to edit and improve a blog post. 
+    Here's the current content of the blog post:
 
-    User message: {user_message}
+    {blog_content}
 
-    Please provide a helpful and relevant response to the user's message in the context of this blog post."""
+    The user has provided the following input or question:
+    {user_message}
+
+    Please update the blog post content based on the user's input. If it's a question, 
+    incorporate the answer into the blog post. If it's a suggestion for an edit, 
+    make the appropriate changes. Return the entire updated blog post content.
+    """
     
     response = client.chat.completions.create(
         model="gpt-4-0125-preview",
         messages=[{"role": "user", "content": prompt}]
     )
     
-    ai_response = response.choices[0].message.content
+    updated_content = response.choices[0].message.content
     
-    return jsonify({"response": ai_response})
+    # Update the stored blog post content
+    blog_posts[index]['content'] = updated_content
+    
+    return jsonify({"response": updated_content})
 
 if __name__ == '__main__':
     app.run(debug=True)
