@@ -5,6 +5,7 @@ from io import StringIO
 import json
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import os
 
 app = Flask(__name__)
 client = OpenAI()  # Assumes OPENAI_API_KEY is set in environment variables
@@ -196,7 +197,13 @@ def display_blog():
         return "Content not found", 404
     
     blog_posts = generated_content[content_id]
-    return render_template('blog.html', blog_posts=blog_posts)
+    
+    # Read the blog.txt file
+    blog_txt_path = os.path.join(app.root_path, 'templates', 'blog.txt')
+    with open(blog_txt_path, 'r') as file:
+        blog_txt = file.read()
+    
+    return render_template('blog.html', blog_posts=blog_posts, blog_txt=blog_txt)
 
 @app.route('/get-metatags/<int:index>')
 def get_metatags(index):
@@ -247,6 +254,7 @@ def chat(index):
     user_message = request.json['message']
     blog_content = request.json['blogContent']
     
+    from context import messages
     # Generate AI response using OpenAI API
     prompt = f"""You are an AI assistant helping to edit and improve a blog post. 
     Here's the current content of the blog post:

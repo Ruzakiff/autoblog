@@ -123,6 +123,23 @@
             float: right;
             cursor: pointer;
         }
+        .default-buttons {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .default-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin-right: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -132,6 +149,15 @@
         <h2>{{ post.title }}</h2>
         <p><strong>Keyword:</strong> {{ post.keyword }}</p>
         <div id="blog-content-{{ loop.index0 }}">{{ post.content | safe }}</div>
+        <div class="default-buttons">
+            <button class="default-button" onclick="sendDefaultMessage({{ loop.index0 }}, 
+                `rewrite the entire above blog post using the below formatting and voice of the example below, do not change the topic of the original blog, just maintain voice of exampl:
+                Maintain the same structure and style.
+                ${`{{ blog_txt | safe }}`}`)">
+                Rewrite Using Armarkat Voice
+            </button>
+            <button class="default-button" onclick="sendDefaultMessage({{ loop.index0 }}, 'need meta and tags for blog')">Get meta and tags</button>
+        </div>
         <div class="chat-input">
             <input type="text" id="chat-input-{{ loop.index0 }}" placeholder="Ask a question or suggest an edit...">
             <button onclick="sendMessage({{ loop.index0 }})">Send</button>
@@ -140,6 +166,11 @@
     {% endfor %}
 
     <script>
+        function sendDefaultMessage(index, message) {
+            document.getElementById(`chat-input-${index}`).value = message;
+            sendMessage(index);
+        }
+
         function sendMessage(index) {
             const input = document.getElementById(`chat-input-${index}`);
             const message = input.value.trim();
