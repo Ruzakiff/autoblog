@@ -17,7 +17,7 @@ def analyze_csv(data, stream=False):
     print("Entering analyze_csv function")
     print("Input data:", data)
 
-    prompt = f"""Choose from the below list of longtail keywords, and generate blog titles for {__import__('datetime').datetime.now().strftime('%B %Y')}. Rank and align these titles by how well they support Armarkat's goals as outlined above:
+    prompt = f"""Choose from the below list of longtail keywords, and generate blog titles, when possible make the blog titles contextually relevant to the given month for example in november blogs should be thanksgiving themed {__import__('datetime').datetime.now().strftime('%B %Y')}. Rank and align these titles by how well they support Armarkat's goals as outlined above:
     
     Format the output as a JSON array of objects, each containing:
     {{
