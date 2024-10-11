@@ -148,7 +148,7 @@
     <div class="blog-post">
         <h2>{{ post.title }}</h2>
         <p><strong>Keyword:</strong> {{ post.keyword }}</p>
-        <div id="blog-content-{{ loop.index0 }}">{{ post.content | safe }}</div>
+        <div id="blog-content-{{ loop.index0 }}" data-title="{{ post.title }}">{{ post.content | safe }}</div>
         <div class="default-buttons">
             <button class="default-button" onclick="sendDefaultMessage({{ loop.index0 }}, 
                 `rewrite the entire above blog post using the below formatting and voice of the example below, do not change the topic of the original blog, just maintain voice of exampl:
@@ -175,8 +175,8 @@
             const input = document.getElementById(`chat-input-${index}`);
             const message = input.value.trim();
             if (message) {
-                const blogContent = document.getElementById(`blog-content-${index}`).innerHTML;
-                
+                const blogContentElement = document.getElementById(`blog-content-${index}`);
+                const blogContent = `Title: ${blogContentElement.getAttribute('data-title')}\n\n${blogContentElement.innerHTML}`;
                 // Get the content ID from the URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const contentId = urlParams.get('id');
@@ -189,7 +189,7 @@
                     },
                     body: JSON.stringify({ 
                         message: message,
-                        blogContent: blogContent
+                        blogContent: blogContent,
                     })
                 })
                 .then(response => response.json())
