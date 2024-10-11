@@ -166,43 +166,20 @@
 
     <script>
         function sendDefaultMessage(index, message) {
-            document.getElementById(`chat-input-${index}`).value = message;
-            sendMessage(index);
+            sendMessage(index, message);
         }
 
-        function sendMessage(index) {
+        function sendMessage(index, customMessage = null) {
             const input = document.getElementById(`chat-input-${index}`);
-            const message = input.value.trim();
+            const message = customMessage || input.value.trim();
             if (message) {
                 const blogContentElement = document.getElementById(`blog-content-${index}`);
                 const blogContent = `Title: ${blogContentElement.getAttribute('data-title')}\n\n${blogContentElement.innerHTML}`;
+                // Get the content ID from the URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const contentId = urlParams.get('id');
                 
-                // Clear the input field
-                input.value = '';
-                
-                // Clear the blog content
-                blogContentElement.innerHTML = '';
-                
-                // Create an EventSource for streaming
-                const eventSource = new EventSource(`/chat/${index}?id=${contentId}`);
-                
-                eventSource.onmessage = function(event) {
-                    const data = JSON.parse(event.data);
-                    if (data.content === '[DONE]') {
-                        eventSource.close();
-                    } else {
-                        blogContentElement.innerHTML += data.content;
-                    }
-                };
-                
-                eventSource.onerror = function(error) {
-                    console.error('EventSource failed:', error);
-                    eventSource.close();
-                };
-                
-                // Send the initial message
+                // Send message to backend
                 fetch(`/chat/${index}?id=${contentId}`, {
                     method: 'POST',
                     headers: {
@@ -212,7 +189,13 @@
                         message: message,
                         blogContent: blogContent,
                     })
-                }).catch((error) => {
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById(`blog-content-${index}`).innerHTML = data.response;
+                    input.value = '';
+                })
+                .catch((error) => {
                     console.error('Error:', error);
                     alert('Error processing message');
                 });
@@ -233,5 +216,4 @@
     </script>
 </body>
 </html>
-
 

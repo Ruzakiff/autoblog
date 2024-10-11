@@ -6,14 +6,19 @@ import json
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
+from dotenv import load_dotenv
+import boto3
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
-client = OpenAI()  # Assumes OPENAI_API_KEY is set in environment variables
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 # In-memory storage for generated content (replace with a database in production)
 generated_content = {}
 
-def analyze_csv(data, stream=False):
+def analyze_csv(data):
     print("Entering analyze_csv function")
     print("Input data:", data)
 
@@ -282,4 +287,7 @@ def chat(index):
     return jsonify({"response": updated_content})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Use the PORT environment variable provided by Elastic Beanstalk
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
+
