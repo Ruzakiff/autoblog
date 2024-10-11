@@ -18,7 +18,7 @@ client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 # In-memory storage for generated content (replace with a database in production)
 generated_content = {}
 
-def analyze_csv(data, stream=False):
+def analyze_csv(data):
     print("Entering analyze_csv function")
     print("Input data:", data)
 

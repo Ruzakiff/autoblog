@@ -48,6 +48,24 @@
             box-sizing: border-box;
             margin-top: 5px;
         }
+        #loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -82,6 +100,12 @@
     </table>
     <button id="generateButton" disabled>Generate Blog Posts</button>
 
+    <div id="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Generating blog posts...</p>
+        <p>This may take a few minutes. Please wait.</p>
+    </div>
+
     <script>
         const checkboxes = document.querySelectorAll('.row-selector');
         const generateButton = document.getElementById('generateButton');
@@ -115,6 +139,11 @@
                         productDescription: row.cells[7].querySelector('input').value
                     };
                 });
+
+            // Show loading indicator and disable button
+            document.getElementById('loading').style.display = 'block';
+            generateButton.disabled = true;
+
             // Send selectedItems to the backend
             fetch('/generate-content', {
                 method: 'POST',
@@ -129,11 +158,17 @@
                     window.location.href = '/blog?id=' + data.id;
                 } else {
                     alert('Error generating content');
+                    // Hide loading indicator and re-enable button on error
+                    document.getElementById('loading').style.display = 'none';
+                    generateButton.disabled = false;
                 }
             })
             .catch((error) => {
                 console.error('Error:', error);
                 alert('Error generating content');
+                // Hide loading indicator and re-enable button on error
+                document.getElementById('loading').style.display = 'none';
+                generateButton.disabled = false;
             });
         });
     </script>
