@@ -151,8 +151,7 @@
         <div id="blog-content-{{ loop.index0 }}" data-title="{{ post.title }}">{{ post.content | safe }}</div>
         <div class="default-buttons">
             <button class="default-button" onclick="sendDefaultMessage({{ loop.index0 }}, 
-                `rewrite the entire above blog post using the below formatting and voice of the example below, do not change the topic of the original blog, just maintain voice of exampl:
-                Maintain the same structure and style.
+                `rewrite the entire above blog post using the below formatting and voice of the example below, do not change the topic of the original blog, just maintain voice of below example:
                 ${`{{ blog_txt | safe }}`}`)">
                 Rewrite Using Armarkat Voice
             </button>
