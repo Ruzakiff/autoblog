@@ -201,6 +201,7 @@
                 Rewrite Using Armarkat Voice
             </button>
             <button class="default-button" onclick="sendDefaultMessage({{ loop.index0 }}, 'need meta and tags for blog')">Get meta and tags</button>
+            <button class="default-button" onclick="exportToGoogleDrive({{ loop.index0 }})">Export to Google Drive</button>
         </div>
         <div class="chat-input">
             <input type="text" id="chat-input-{{ loop.index0 }}" placeholder="Ask a question or suggest an edit...">
@@ -280,6 +281,38 @@
             }
         }
 
+        function exportToGoogleDrive(index) {
+            showLoading(index);
+            const blogContentElement = document.getElementById(`blog-content-${index}`);
+            const blogTitle = blogContentElement.getAttribute('data-title');
+            const blogContent = blogContentElement.innerHTML;
+            
+            fetch('/export-to-drive', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    title: blogTitle,
+                    content: blogContent
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Blog post exported to Google Drive successfully!');
+                } else {
+                    alert('Error exporting to Google Drive: ' + data.error);
+                }
+                hideLoading(index);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Error exporting to Google Drive');
+                hideLoading(index);
+            });
+        }
+
         // Add event listener for Enter key in input fields
         document.addEventListener('DOMContentLoaded', function() {
             const chatInputs = document.querySelectorAll('[id^="chat-input-"]');
@@ -294,6 +327,4 @@
     </script>
 </body>
 </html>
-
-
 
