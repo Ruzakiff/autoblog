@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parsed CSV Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .selected {
+            background-color: #e0f7fa;
+        }
+        #generateButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #generateButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .product-input {
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 5px;
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Parsed CSV Results</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Select</th>
+                <th>Keyword</th>
+                <th>Title</th>
+                <th>Search Volume</th>
+                <th>Competition</th>
+                <th>Alignment with Goals</th>
+                <th>Total Score</th>
+                <th>Product Model/Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td><input type="checkbox" class="row-selector" data-index="{{ loop.index0 }}"></td>
+                <td>{{ item['keyword'] }}</td>
+                <td>{{ item['title'] }}</td>
+                <td>{{ item['searchVolume'] }}</td>
+                <td>{{ item['competition'] }}</td>
+                <td>{{ item['alignment_with_goals'] }}</td>
+                <td>{{ item['totalScore'] }}</td>
+                <td><input type="text" class="product-input" placeholder="Optional product model/description"></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button id="generateButton" disabled>Generate Blog Posts</button>
+
+    <div id="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Generating blog posts...</p>
+        <p>This may take a few minutes. Please wait.</p>
+    </div>
+
+    <script>
+        const checkboxes = document.querySelectorAll('.row-selector');
+        const generateButton = document.getElementById('generateButton');
+        const rows = document.querySelectorAll('tbody tr');
+
+        checkboxes.forEach((checkbox, index) => {
+            checkbox.addEventListener('change', () => {
+                rows[index].classList.toggle('selected', checkbox.checked);
+                updateGenerateButton();
+            });
+        });
+
+        function updateGenerateButton() {
+            const selectedCount = document.querySelectorAll('.row-selector:checked').length;
+            generateButton.disabled = selectedCount === 0;
+        }
+
+        generateButton.addEventListener('click', () => {
+            const selectedItems = Array.from(checkboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => {
+                    const index = parseInt(checkbox.dataset.index);
+                    const row = rows[index];
+                    return {
+                        keyword: row.cells[1].textContent,
+                        title: row.cells[2].textContent,
+                        searchVolume: row.cells[3].textContent,
+                        competition: row.cells[4].textContent,
+                        alignment_with_goals: row.cells[5].textContent,
+                        totalScore: row.cells[6].textContent,
+                        productDescription: row.cells[7].querySelector('input').value
+                    };
+                });
+
+            // Show loading indicator and disable button
+            document.getElementById('loading').style.display = 'block';
+            generateButton.disabled = true;
+
+            // Send selectedItems to the backend
+            fetch('/generate-content', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(selectedItems)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.id) {
+                    window.location.href = '/blog?id=' + data.id;
+                } else {
+                    alert('Error generating content');
+                    // Hide loading indicator and re-enable button on error
+                    document.getElementById('loading').style.display = 'none';
+                    generateButton.disabled = false;
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Error generating content');
+                // Hide loading indicator and re-enable button on error
+                document.getElementById('loading').style.display = 'none';
+                generateButton.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -6,7 +6,6 @@ from googleapiclient.http import MediaIoBaseUpload
 from io import BytesIO
 from flask import Flask, request, jsonify
 from openai import OpenAI
-
 app = Flask(__name__)
 
 # Constants
@@ -44,10 +43,13 @@ def export_to_drive():
             messages=[
                 {"role": "system", "content": "Format the provided content to markdown to be more webblog friendly. Do not paraphrase, just reformat for spacing and ease of reading. Never include conclusion/body/intro headers."},
                 {"role": "user", "content": f"Title: {title}\n\nContent: {content}"}
-            ]
+            ],
+            temperature=0,
+            max_tokens=16384
         )
         
         formatted_content = response.choices[0].message.content
+        print(formatted_content)
         
         # Continue with Google Drive export using formatted content
         drive_service = get_google_drive_service()
@@ -56,7 +58,11 @@ def export_to_drive():
             'mimeType': 'application/vnd.google-apps.document',
             'parents': [FOLDER_ID]
         }
-        media = MediaIoBaseUpload(BytesIO(formatted_content.encode('utf-8')), mimetype='text/html', resumable=True)
+        media = MediaIoBaseUpload(
+            BytesIO(formatted_content.encode('utf-8')),
+            mimetype='text/plain',
+            resumable=True
+        )
         file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
         return jsonify({'success': True, 'fileId': file.get('id')})
     except Exception as e:
